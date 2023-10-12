@@ -4,22 +4,16 @@ program readshm
   !! The goal is how to send data from python to this program, through first
   !! assigning some data into the library, then dumping it into shm from python,
   !! and then reading the shm here.
-  use my_f, only:read_var, assignment(=)
+  use my_f
   use iso_c_binding
   implicit none
-  interface
-     function fetch_intptr()result(intptr)bind(C,name="fetch_intptr")
-       import c_intptr_t
-       integer( c_intptr_t ) intptr
-     end function fetch_intptr
-  end interface
 
 
-  ! integer( c_size_t ), parameter :: dsize = 4096 !! in bytes
 
   character(len=20) :: fname
   integer :: i
   integer( c_intptr_t ) :: pp
+  integer( c_int ) :: ierr
 
   real :: r0d
   integer :: i0d

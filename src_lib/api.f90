@@ -1,8 +1,11 @@
 module api
   use datamod
+  use iso_c_binding
 
   !! hard-code the name of shm as parameter, like this we don't need to carry it around
   character(*), parameter :: shm_fname = "/this_shm"
+  !! hard-code initial size of shm in bytes.. could be better
+  integer( c_size_t ), parameter :: shm_dsize = 4096_c_size_t
 contains
 
 
@@ -148,27 +151,22 @@ contains
   end subroutine lib_setarray
 
 
-  subroutine lib_dump2shm( me, ccname )bind(C, name="lib_dump2shm")
-    use tools
+  ! subroutine lib_dump2shm( me, ccname )bind(C, name="lib_dump2shm")
+  function lib_dump2shm( me ) result(ierr) bind(C, name="lib_dump2shm")
+  use tools
     use iso_c_binding
     implicit none
     type( c_ptr ), value, intent(in) :: me
-    type( c_ptr ), value, intent(in) :: ccname !! name of the shm
+    ! type( c_ptr ), value, intent(in) :: ccname !! name of the shm
+    integer( c_int ) :: ierr
 
     type( data ), pointer :: fdata
-    character(len=1,kind=c_char), dimension(:), pointer :: ptr_cname
     character( kind=c_char, len = 1), allocatable :: cname(:)
-    integer( c_size_t ) :: n
-    integer( c_int ) :: ierr, shm_f, dim1, dim2
-    integer( c_size_t ) :: fsize
+    integer( c_int ) :: shm_f
     integer( c_intptr_t ) :: intptr
-    integer :: dtyp
 
     !! get obj
     call c_f_pointer( me, fdata )
-
-    ! n = c_strlen( ccname )
-    ! call c_f_pointer( ccname, ptr_cname, [n])
 
     cname = f_c_string( shm_fname )
 
@@ -176,6 +174,7 @@ contains
     shm_f = shm_open( cname, O_CREAT+O_RDWR, S_IRUSR+S_IWUSR )
     if( shm_f .eq. -1 ) then
        write(*,*) "error in shm_open", cname
+       ierr = -9_c_int
        return
     end if
 
@@ -197,7 +196,7 @@ contains
     call cpy_var( me, intptr, "r" )
     call cpy_var( me, intptr, "r2d")
 
-  end subroutine lib_dump2shm
+  end function lib_dump2shm
 
   subroutine cpy_var( me, intptr, name )
     use tools
@@ -258,30 +257,24 @@ contains
   end subroutine cpy_var
 
 
-  subroutine lib_killshm( me, ccname )bind(C, name="lib_killshm")
+  function lib_shm_unlink() result(ierr) bind(C, name="lib_shm_unlink")
     use tools
     use iso_c_binding
     implicit none
-    type( c_ptr ), value, intent(in) :: me
-    type( c_ptr ), value, intent(in) :: ccname !! name of the shm
-
-    character(len=1,kind=c_char), dimension(:), pointer :: ptr_cname
-    character( kind=c_char, len = 1), allocatable :: cname(:)
-    integer( c_size_t ) :: n
     integer( c_int ) :: ierr
 
-    ! n = c_strlen( ccname )
-    ! call c_f_pointer( ccname, ptr_cname, [n])
+    character( kind=c_char, len = 1), allocatable :: cname(:)
+
     cname = f_c_string( shm_fname )
 
     !! unlink shm
     ierr = shm_unlink( cname )
     if( ierr .ne. 0 ) then
-       write(*,*) "error in unlink_shm",cname
+       write(*,*) "error in shm_unlink",cname
        return
     end if
 
-  end subroutine lib_killshm
+  end function lib_shm_unlink
 
 
 

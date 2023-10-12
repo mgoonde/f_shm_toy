@@ -1,8 +1,6 @@
 module my_f
 
   use iso_c_binding
-  use tools
-  ! use datamod
 
   implicit none
 
@@ -27,12 +25,35 @@ module my_f
      real, allocatable :: r1d(:), r2d(:,:)
   end type val
 
+
+  !! overload assignment from intermediate type to actual variable
   interface assignment(=)
      module procedure &
           assign_int0d_val, &
           assign_real0d_val, &
           assign_real2d_val
   end interface assignment(=)
+
+
+
+  interface
+     subroutine  memcpy(dest, src, n) bind(C,name='memcpy')
+       import c_intptr_t, c_size_t
+       INTEGER(c_intptr_t), value :: dest
+       INTEGER(c_intptr_t), value :: src
+       integer(c_size_t),   value :: n
+     end subroutine memcpy
+  end interface
+  interface
+     function fetch_intptr()result(intptr)bind(C,name="fetch_intptr")
+       import c_intptr_t
+       integer( c_intptr_t ) intptr
+     end function fetch_intptr
+     function lib_shm_unlink()result(ierr)bind(C, name="lib_shm_unlink")
+       import c_int
+       integer( c_int ) :: ierr
+     end function lib_shm_unlink
+  end interface
 
 contains
 

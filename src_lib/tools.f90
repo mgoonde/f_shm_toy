@@ -6,8 +6,6 @@ module tools
 
   public
 
-  integer( c_size_t ), parameter :: shm_dsize = 4096_c_size_t  !! initial size of shm in bytes.. could be better
-
   ! from: /usr/include/asm-generic/mman-common.h
   ! #define PROT_READ       0x1             /* page can be read */
   ! #define PROT_WRITE      0x2             /* page can be written */

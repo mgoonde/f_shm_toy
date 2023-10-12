@@ -79,20 +79,23 @@ class api():
         self.lib.lib_setarray.argtypes = [c_void_p, c_char_p, POINTER(POINTER(c_int)), cdata_typ ]
         self.lib.lib_setarray( self.me, cname, pointer(csize), pointer(cdata) )
         return
-    def dump2shm( self, name ):
-        self.lib.lib_dump2shm.argtypes = [ c_void_p, c_char_p ]
-        self.lib.lib_dump2shm.restype = None
-        cname = name.encode()
 
-        self.lib.lib_dump2shm( self.me, cname )
+    def dump2shm( self ):
+        self.lib.lib_dump2shm.argtypes = [ c_void_p ]
+        self.lib.lib_dump2shm.restype = c_int
+
+        ierr = self.lib.lib_dump2shm( self.me )
+        if ierr != 0:
+            print("err in dump2sh")
         return
 
-    def killshm( self, name ):
-        self.lib.lib_killshm.argtypes = [ c_void_p ]
-        self.lib.lib_killshm.restype = None
-        cname = name.encode()
+    def unlink_lshm( self ):
+        self.lib.lib_shm_unlink.argtypes = [ ]
+        self.lib.lib_shm_unlink.restype = c_int
 
-        self.lib.lib_killshm( self.me, cname )
+        ierr = self.lib.lib_shm_unlink( )
+        if ierr != 0:
+            print("err in shm_unlink")
         return
 
 
